@@ -1,0 +1,6 @@
+# Godan's config file
+
+ServerIP = "127.0.0.1"
+ServerPort = "1234"
+Database = "db_name" 
+Collection = "collection_name" 
