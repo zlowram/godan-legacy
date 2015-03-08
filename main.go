@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/zlowram/gsd"
+	"golang.org/x/net/proxy"
 	"gopkg.in/mgo.v2"
 )
 
@@ -28,6 +29,8 @@ var (
 	portsFlag     = flag.String("p", "", "set ports from cmdline (if not specified, top-100 ports)")
 	portFile      = flag.String("P", "", "set ports from file (if not specified, top-100 ports)")
 	maxGoroutines = flag.Int("m", MAX_GOROUTINES, "limit maximum number of goroutines")
+	proxyHost     = flag.String("proxy", "", "set SOCKS5 proxy")
+	proxyAuth     = flag.String("proxy-auth", "", "set authentication parameters for SOCKS5 proxy. Syntax: username:password")
 )
 
 func parseIPs() []string {
@@ -114,12 +117,26 @@ func main() {
 
 	// Add services
 	services := []gsd.Service{
-		gsd.NewHttpsService(),
-		gsd.NewHttpService(),
+		//gsd.NewHttpsService(),
+		//gsd.NewHttpService(),
 		gsd.NewTCPService(),
-		gsd.NewTCPTLSService(),
+		//gsd.NewTCPTLSService(),
 	}
 	godan.AddServices(services)
+
+	// Check if proxy
+	if *proxyHost != "" {
+		var auth *proxy.Auth
+		if *proxyAuth != "" {
+			auth = &proxy.Auth{
+				User:     strings.Split(*proxyAuth, ":")[0],
+				Password: strings.Split(*proxyAuth, ":")[1],
+			}
+		} else {
+			auth = &proxy.Auth{}
+		}
+		godan.SetProxy(*proxyHost, auth)
+	}
 
 	// Store the data!
 	session, err := mgo.Dial(config.ServerIP + ":" + config.ServerPort)
