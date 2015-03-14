@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -8,9 +9,9 @@ import (
 	"os"
 	"strings"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/zlowram/gsd"
 	"golang.org/x/net/proxy"
-	"gopkg.in/mgo.v2"
 )
 
 const (
@@ -138,15 +139,13 @@ func main() {
 		godan.SetProxy(*proxyHost, auth)
 	}
 
-	// Store the data!
-	session, err := mgo.Dial(config.ServerIP + ":" + config.ServerPort)
+	dsn := config.Username + ":" + config.Password + "@tcp(" + config.ServerIP + ":" + config.ServerPort + ")/" + config.Database + "?charset=utf8"
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer session.Close()
-
-	// Optional. Switch the session to a monotonic behavior.
-	session.SetMode(mgo.Monotonic, true)
+	defer db.Close()
+	db.Exec("CREATE TABLE IF NOT EXISTS banners (ip INT UNSIGNED, port INT UNSIGNED, service VARCHAR(50), content TEXT, error TEXT)")
 
 	// Run them!
 	results := godan.Run(*maxGoroutines)
@@ -156,8 +155,7 @@ func main() {
 		if r.Error != "" {
 			continue
 		}
-		c := session.DB(config.Database).C(config.Collection)
-		err = c.Insert(&r)
+		_, err := db.Exec("INSERT INTO banners (ip, port, service, content, error) VALUES (INET_ATON(?), ?, ?, ?, ?)", r.Ip, r.Port, r.Service, r.Content, r.Error)
 		if err != nil {
 			log.Fatal(err)
 		}

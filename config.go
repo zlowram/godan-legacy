@@ -9,8 +9,9 @@ import (
 type Config struct {
 	ServerIP   string
 	ServerPort string
+	Username   string
+	Password   string
 	Database   string
-	Collection string
 }
 
 func loadConfig(configFile string) (Config, error) {

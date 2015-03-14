@@ -2,5 +2,6 @@
 
 ServerIP = "127.0.0.1"
 ServerPort = "1234"
+Username = "uname"
+Password = "passwd"
 Database = "db_name" 
-Collection = "collection_name" 
