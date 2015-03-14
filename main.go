@@ -117,10 +117,10 @@ func main() {
 
 	// Add services
 	services := []gsd.Service{
-		//gsd.NewHttpsService(),
-		//gsd.NewHttpService(),
+		gsd.NewHttpsService(),
+		gsd.NewHttpService(),
 		gsd.NewTCPService(),
-		//gsd.NewTCPTLSService(),
+		gsd.NewTCPTLSService(),
 	}
 	godan.AddServices(services)
 
